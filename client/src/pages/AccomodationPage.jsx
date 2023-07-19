@@ -23,22 +23,22 @@ function AccomodationPage() {
     useEffect(() => {
         if(!id){
             return;
-        }else{
-            axios.get('/places/' +id).then(response => {
-                const {data} = response;
-                setTitle(data.title);
-                setAddress(data.address);
-                setAddedPhotos(data.photos)
-                setDescription(data.description)
-                setPerks(data.perks)
-                setExtraInfo(data.extraInfo)
-                setCheckIn(data.checkIn)
-                setCheckOut(data.checkOut)
-                setMaxGuests(data.maxGuests)
-                setPrice(data.price)
-            })
         }
-    }, [id])
+        axios.get('/places/' +id).then(response => {
+            const {data} = response;
+            setTitle(data.title);
+            setAddress(data.address);
+            setAddedPhotos(data.photos)
+            setDescription(data.description)
+            setPerks(data.perks)
+            setExtraInfo(data.extraInfo)
+            setCheckIn(data.checkIn)
+            setCheckOut(data.checkOut)
+            setMaxGuests(data.maxGuests)
+            setPrice(data.price)
+        })
+
+    }, [id]);
 
     function inputHeader(text) {
         return (<h2 className='text-2xl mt-4'>{text}</h2>)
@@ -71,9 +71,7 @@ function AccomodationPage() {
             setRedirect(true);
         }else{
             // new place
-            await axios.post('/places', {
-                placeData
-            });
+            await axios.post('/places', placeData);
             setRedirect(true);
         }
     }
