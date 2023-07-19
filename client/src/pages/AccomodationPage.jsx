@@ -1,12 +1,14 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react'
 import Perks from '../components/Perks';
 import PhotosUploader from '../components/PhotosUploader';
 import AccountNav from '../components/AccountNav';
 import axios from 'axios';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
+
 
 function AccomodationPage() {
+    const {id} = useParams();
     const [title, setTitle] = useState('')
     const [address, setAddress] = useState('')
     const [addedPhotos, setAddedPhotos] = useState([])
@@ -16,7 +18,27 @@ function AccomodationPage() {
     const [checkIn, setCheckIn] = useState('')
     const [checkOut, setCheckOut] = useState('')
     const [maxGuests, setMaxGuests] = useState(1)
+    const [price, setPrice] = useState(100);
     const [redirect, setRedirect] = useState(false)
+    useEffect(() => {
+        if(!id){
+            return;
+        }else{
+            axios.get('/places/' +id).then(response => {
+                const {data} = response;
+                setTitle(data.title);
+                setAddress(data.address);
+                setAddedPhotos(data.photos)
+                setDescription(data.description)
+                setPerks(data.perks)
+                setExtraInfo(data.extraInfo)
+                setCheckIn(data.checkIn)
+                setCheckOut(data.checkOut)
+                setMaxGuests(data.maxGuests)
+                setPrice(data.price)
+            })
+        }
+    }, [id])
 
     function inputHeader(text) {
         return (<h2 className='text-2xl mt-4'>{text}</h2>)
@@ -32,14 +54,28 @@ function AccomodationPage() {
             </>
         );
     }
-    async function addNewPlace(e) {
+    async function savePlace(e) {
         e.preventDefault();
-        await axios.post('/places', {
+        const placeData = {
             title, address, addedPhotos, 
             description, perks, extraInfo, 
-            checkIn, checkOut, maxGuests
-        });
-        setRedirect(true);
+            checkIn, checkOut, maxGuests,
+            price
+        };
+        if (id) {
+            //update
+            await axios.put('/places', {
+                id,
+                ...placeData
+            });
+            setRedirect(true);
+        }else{
+            // new place
+            await axios.post('/places', {
+                placeData
+            });
+            setRedirect(true);
+        }
     }
 
     if(redirect){
@@ -50,7 +86,7 @@ function AccomodationPage() {
         <>
             <div>
                 <AccountNav/>
-                <form onSubmit={addNewPlace}>
+                <form onSubmit={savePlace}>
                     {preInput('Title','Title for your place should be short and catchy as in advertisment')}
                     <input type="text" 
                     value={title} 
@@ -76,7 +112,7 @@ function AccomodationPage() {
                     value={extraInfo} 
                     onChange={ e => setExtraInfo(e.target.value)}/>
                     {preInput('Check in&out times','add check in and out times, remember to have some time window for cleaning the room between guests')}
-                    <div className='grid sm:grid-cols-3 gap-2'>
+                    <div className='grid grid-cols-2 md:grid-cols-4 gap-2'>
                         <div > 
                             <h3 className='mt-2 -mb-1'>Check in time</h3>
                             <input type="number" placeholder='14:00' 
@@ -94,6 +130,12 @@ function AccomodationPage() {
                             <input type="number" 
                             value={maxGuests} 
                             onChange={ e => setMaxGuests(e.target.value)}/>
+                        </div>
+                        <div >
+                            <h3 className='mt-2 -mb-1'>Price per night</h3>
+                            <input type="number" 
+                            value={price} 
+                            onChange={ e => setPrice(e.target.value)}/>
                         </div>
                     </div>
                     <button className='primary my-4' >Save</button>
